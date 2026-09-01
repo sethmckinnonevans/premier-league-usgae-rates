@@ -1,4 +1,4 @@
-name,id,team,team id,primaryPosition,positionGroup,minutesPlayed,averageBallPossession,totalShots,inaccuratePasses,dispossessed,unsuccessfulDribbles,keyPasses,assists,expectedAssists,goals,expectedGoals,market_value
+playerName,playerId,teamName,teamId,primaryPosition,positionGroup,minutesPlayed,averageBallPossession,totalShots,inaccuratePasses,dispossessed,unsuccessfulDribbles,keyPasses,assists,expectedAssists,goals,expectedGoals,marketValue
 Bruno Fernandes,288205,Manchester United,35,AM,Midfielder,3066,51.79,85,355,30,21,137,21,12.32,9,10.83,32000000.0
 Declan Rice,856714,Arsenal,42,MC,Midfielder,3099,56.13,40,271,18,14,64,5,6.96,4,3.17,114000000.0
 Bruno Guimarães,866469,Newcastle United,39,MC,Midfielder,2455,52.61,42,201,46,30,46,5,4.98,9,5.6,72000000.0
@@ -272,7 +272,7 @@ Jake O'Brien,998253,Everton,48,DR,Fullback,3131,43.63,13,281,21,14,17,1,0.99,1,1
 Florentino Luís,855845,Burnley,6,MC,Midfielder,2118,42.29,13,151,17,14,13,2,0.55,0,0.66,15500000.0
 Vitaliy Mykolenko,876643,Everton,48,DL,Fullback,2960,43.63,9,240,11,20,23,1,2.46,0,0.29,26000000.0
 Manuel Ugarte,846425,Manchester United,35,MC,Midfielder,900,51.79,13,75,11,3,3,0,0.2,0,0.71,24000000.0
-James Milner,791,Brighton & Hove Albion,30,MC,Midfielder,802,54.08,8,64,3,1,8,1,0.63,1,1.02,
+James Milner,791,Brighton & Hove Albion,30,MC,Midfielder,802,54.08,8,64,3,1,8,1,0.63,1,1.02,0.0
 Lukas Nmecha,803185,Leeds United,34,ST,Striker,1092,45.74,30,74,18,6,11,1,1.56,6,7.23,9100000.0
 Jacob Ramsey,975937,Newcastle United,39,LW,Winger,1465,52.61,16,72,13,15,22,3,1.43,2,1.19,36000000.0
 Conor Gallagher,904970,Tottenham Hotspur,33,MC,Midfielder,1196,50.37,11,80,13,8,13,1,0.72,1,1.07,31000000.0
@@ -476,7 +476,7 @@ Kaden Rodney,1185603,Crystal Palace,7,MC,Midfielder,9,45.92,0,2,0,0,0,0,0.0,0,0.
 Arnaud Kalimuendo,954061,Nottingham Forest,14,ST,Striker,106,46.76,4,5,1,0,1,0,0.03,0,0.44,24000000.0
 Jamaal Lascelles,153444,Newcastle United,39,DC,Centerback,25,52.61,1,2,0,0,0,0,0.0,0,0.04,760000.0
 Patrick Roberts,361326,Sunderland,41,RW,Winger,27,44.84,1,4,0,0,0,0,0.02,0,0.03,4099999.0
-Sean Neave,1511675,Newcastle United,39,ST,Striker,13,52.61,1,0,1,0,0,0,0.0,0,0.03,
+Sean Neave,1511675,Newcastle United,39,ST,Striker,13,52.61,1,0,1,0,0,0,0.0,0,0.03,0.0
 Jørgen Strand Larsen,876599,Crystal Palace,7,ST,Striker,2316,45.92,44,175,27,16,10,1,1.11,4,5.32,41000000.0
 Zach Abbott,1390490,Nottingham Forest,14,DC,Centerback,165,46.76,0,18,2,2,0,0,0.01,0,0.0,3900000.0
 Igor Júlio,842513,Brighton & Hove Albion,30,DC,Centerback,122,54.08,0,6,0,0,1,0,0.0,0,0.0,9700000.0
