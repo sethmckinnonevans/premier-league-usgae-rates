@@ -25,33 +25,38 @@ The objective was to investigate whether Usage Rate can provide insight into cre
 - Usage Rate showed a strong relationship with total FPL points, with an R² of 0.827, highlighting its potential application in Fantasy Premier League analysis.
 - 
 ## Project Structure
-Premier League Usage Rates/
-│
-├── data/
-|   ├── player_usage_data.csv
-│   └── cleaned/
-│       ├── player_data_cleaned.csv
-│       ├── team_data_cleaned.csv
-│       └──SCA.csv
-│       
-├── figures/
-│   ├── team-transfers/ html/
-|       └── team-transfers/
+
+```text
+data/
+├── raw/
+├── cleaned/
+│   ├── player_data_cleaned.csv
+│   ├── team_data_cleaned.csv
+│   └── SCA.csv
+├── player_data_master.csv
+└── player_usage_data.csv
+
+figures/
+├── html/
 │   ├── positions/
-│   └── teams/
-│
-├── notebooks/
-│   └── usage_rates_analysis.ipynb
-│
-├── src/
-│   ├── scraping.py
-│   ├── cleaning.py
-│   ├── sca.py
-│   ├── metrics.py
-│   └── plotting.py
-│
-├── README.md
-└── requirements.txt
+│   ├── teams/
+│   └── team-transfers/
+├── positions/
+└── teams/
+
+notebooks/
+└── usage_rates_analysis.ipynb
+
+src/
+├── scraping.py
+├── cleaning.py
+├── sca.py
+├── metrics.py
+└── plotting.py
+
+README.md
+requirements.txt
+```
 
 ## Data
 The majority of the data used in this project was collected from SofaScore. SCA was derived from WhoScored event data from the 2025/26 season using a custom algorithm to identify the two offensive actions preceding each shot.
