@@ -6,17 +6,13 @@ from sklearn.metrics import r2_score
 import plotly.graph_objects as go
 
 
-def plot_positions(df, position_name, kit_colours, minimum_minutes, interactive = False):
+def plot_positions(df, position_name, kit_colours, minimum_minutes, league_name, output_path, interactive = False):
     
     # Extract positional data
     data = df[df["positionGroup"] == position_name]
 
     # Filter for minutes
     data = data[data["minutesPlayed"] >= minimum_minutes]
-
-    # Define folders
-    project_folder = Path(__file__).resolve().parents[1]
-    figures_folder = project_folder / "figures"
     
     # Define default font
     plt.rcParams["font.family"] = "DIN Alternate"
@@ -43,10 +39,10 @@ def plot_positions(df, position_name, kit_colours, minimum_minutes, interactive 
     if interactive:
 
         # Add custom data for hover interaction
-        custom_data = data[["playerName", "PEA/90", "SCA/90", "GA"]].to_numpy()
+        custom_data = data[["playerName", "PEA/90", "SCA/90", "RCE", "GA"]].to_numpy()
 
         # Define the marker sizes
-        sizes = 10 + data["GA"] * 3
+        sizes = 10 + data["GA"] * 2
 
         # Helper function for hover info text colour
         def get_text_colour(hex_colour):
@@ -80,7 +76,8 @@ def plot_positions(df, position_name, kit_colours, minimum_minutes, interactive 
                                  hovertemplate=("<b>%{customdata[0]}</b><br>"
                                                 "PEA / 90: %{customdata[1]:.2f}<br>"
                                                 "SCA / 90: %{customdata[2]:.2f}<br>"
-                                                "Goals + Assists: %{customdata[3]}"
+                                                "RCE: %{customdata[3]:.2f}<br>"
+                                                "Goals + Assists: %{customdata[4]}"
                                                 "<extra></extra>"),
 
                                  hoverlabel = dict(
@@ -113,7 +110,7 @@ def plot_positions(df, position_name, kit_colours, minimum_minutes, interactive 
                           plot_bgcolor = "#404040",
                           paper_bgcolor = "#404040",
 
-                          title=dict(text=f"Premier League {position_name}s 2025/26",
+                          title=dict(text=f"{league_name} {position_name}s 2025/26",
                                     x = 0.05,
                                     xanchor = "left",
                                     y = 0.97,
@@ -151,7 +148,7 @@ def plot_positions(df, position_name, kit_colours, minimum_minutes, interactive 
                                        mirror = True,
                                        showgrid = False))
 
-        fig.write_html(figures_folder / f"html/{position_name}s.html",
+        fig.write_html(output_path/ f"{position_name}s.html",
                       config = {"responsive" : True})
 
         fig.show()
@@ -178,7 +175,7 @@ def plot_positions(df, position_name, kit_colours, minimum_minutes, interactive 
                         linewidth = 0.5)
     
         # Figure customisation
-        ax.set_title(f"Premier League {position_name}s 2025/26",
+        ax.set_title(f"{league_name} {position_name}s 2025/26",
                           fontsize = 16,
                           pad = 10,
                           color = "white",
@@ -212,23 +209,20 @@ def plot_positions(df, position_name, kit_colours, minimum_minutes, interactive 
                 color = "#CCCCCC",
                 fontsize = 10)
         
-        
-        
         ax.plot(x_line, y_line, 
                      linestyle = "--", 
                      linewidth = 1, 
                      c = "#CCCCCC",
                      alpha = 1)
         
-        plt.savefig(figures_folder / "positions" / f"{position_name}.jpg",
+        plt.savefig(output_path /f"{position_name}.jpg",
                    format = "jpg",
                    dpi = 150)
 
         plt.show()
 
 
-
-def plot_team(df,team_name, team_colour):
+def plot_team(df,team_name, team_colour, output_path):
 
     # Find the team specific data
     team_data = df[df["teamName"] == team_name].copy()
@@ -296,12 +290,203 @@ def plot_team(df,team_name, team_colour):
             linestyle = "--",
             linewidth = 1,
             color = "#CCCCCC")
-
-    # Save fig
-    project_folder = Path(__file__).resolve().parents[1]
-    figures_folder = project_folder / "figures"
     
-    plt.savefig(figures_folder/ "teams" / f"{team_name}-usage-rates.png",
+    plt.savefig(output_path/ f"{team_name}-usage-rates.png",
                format = "png",
                dpi = 150)
     plt.show()
+
+
+
+
+def plot_transfers(df, team_name, players_out, players_in, kit_colours, output_path):
+
+    # Get team data
+    team_data = df[df["teamName"] == team_name].copy()
+
+    # Find transferred in players 
+    transfers_in = df[df["playerName"].isin(players_in)].copy()
+
+    # Add transferred players to team data
+    team_data = pd.concat([team_data, transfers_in], ignore_index = True)
+
+    # PLayer status
+    team_data["status"] = "stayed"
+    team_data.loc[team_data["playerName"].isin(players_out), "status"] = "out"
+    team_data.loc[team_data["playerName"].isin(players_in), "status"] = "in"
+    
+    # Remove players with less than 5 matches played
+    team_data = team_data[team_data["minutesPlayed"] >= 450]
+
+    # Define original and new squads
+    original_squad = team_data[team_data["status"] != "in"]
+    new_squad = team_data[team_data["status"] != "out"]
+    
+    # Define default font
+    plt.rcParams["font.family"] = "DIN Alternate"
+
+    # Original squad plotting data
+    original_custom_data = original_squad[["playerName","usageRate","attackingInvolvement","RCE","GA"]]
+    original_custom_data["usageRate"] *= 100
+    original_custom_data["attackingInvolvement"] *= 100
+    original_custom_data = original_custom_data.to_numpy()
+    original_sizes = 10 + original_squad["GA"] * 3
+    original_colours = original_squad["teamId"].map(kit_colours)
+
+    # New squad plotting data
+    new_custom_data = new_squad[["playerName","usageRate","attackingInvolvement","RCE","GA"]]
+    new_custom_data["usageRate"] *= 100
+    new_custom_data["attackingInvolvement"] *= 100
+    new_custom_data = new_custom_data.to_numpy()
+    new_sizes = 10 + new_squad["GA"] * 3
+    new_colours = new_squad["teamId"].map(kit_colours)
+
+    # Establish figure
+    fig = go.Figure()
+
+    # Scatter Original Squad
+    fig.add_trace(go.Scatter(x = original_squad["usageRate"] * 100,
+                             y = original_squad["attackingInvolvement"] * 100,
+                             mode = "markers+text",
+                            
+                             marker = dict(size = original_sizes,
+                                              color = original_colours,
+                                              line = dict(color = "#CCCCCC",
+                                                          width = 0.5)),
+                             customdata = original_custom_data,
+
+                             hovertemplate=("<b>%{customdata[0]}</b><br>"
+                                            "Usage Rate: %{customdata[1]:.1f}%<br>"
+                                            "Att Inv: %{customdata[2]:.1f}%<br>"
+                                            "RCE: %{customdata[3]:.2f}<br>"
+                                            "Goals + Assists: %{customdata[4]}"
+                                            "<extra></extra>"),
+
+                             hoverlabel = dict(bgcolor = original_colours,
+                                               bordercolor = "#CCCCCC",
+                                               font = dict(color = "#CCCCCC",
+                                                           size = 12,
+                                                           family = "DIN Alternate")),
+
+                             showlegend = False,
+                             hoverinfo = "skip",
+                             visible = True))
+    
+    # Scatter New Squad
+    fig.add_trace(go.Scatter(x = new_squad["usageRate"] * 100,
+                             y = new_squad["attackingInvolvement"] * 100,
+                             mode = "markers+text",
+                            
+                             marker = dict(size = new_sizes,
+                                              color = new_colours,
+                                              line = dict(color = "#CCCCCC",
+                                                          width = 0.5)),
+                             customdata = new_custom_data,
+
+                             hovertemplate=("<b>%{customdata[0]}</b><br>"
+                                            "Usage Rate: %{customdata[1]:.1f}%<br>"
+                                            "Att Inv: %{customdata[2]:.1f}%<br>"
+                                            "RCE: %{customdata[3]:.2f}<br>"
+                                            "Goals + Assists: %{customdata[4]}"
+                                            "<extra></extra>"),
+
+                             hoverlabel = dict(bgcolor = new_colours,
+                                               bordercolor = "#CCCCCC",
+                                               font = dict(color = "#CCCCCC",
+                                                           size = 12,
+                                                           family = "DIN Alternate")),
+
+                             showlegend = False,
+                             hoverinfo = "skip",
+                             visible = False))
+
+    # Plot an x=y line
+    max_value = max((team_data["usageRate"]*100).max(),
+                   (team_data["attackingInvolvement"]*100).max())
+
+    fig.add_trace(go.Scatter(x = [0, max_value],
+                             y = [0, max_value],
+                             mode = "lines",
+                             line = dict(color = "#CCCCCC",
+                                         dash = "dash",
+                                         width = 1),
+                             showlegend = False,
+                             hoverinfo = "skip",
+                             visible = True))
+
+    fig.update_layout(height = 550,
+                      autosize = True,
+
+                      margin = dict(l = 10,
+                                    r = 10,
+                                    t = 30,
+                                    b = 10),
+
+                      plot_bgcolor = "#404040",
+                      paper_bgcolor = "#404040",
+
+                      title=dict(text=f"{team_name} Player Usage Rates",
+                                x = 0.05,
+                                xanchor = "left",
+                                y = 0.97,
+                                yanchor = "middle",
+                                font = dict(
+                                size = 18,
+                                color="white",
+                                family = "DIN Alternate")),
+
+                      updatemenus = [dict(type = "buttons",
+                                          direction = "right",
+                                          x = 0.99,
+                                          y = 0.05,
+                                          xanchor="right",
+                                          yanchor="middle",
+
+                                          bgcolor = "#404040",
+                                          bordercolor = "#CCCCCC",
+                                          borderwidth = 1,
+                                          font = dict(color = "#CCCCCC",
+                                                      size = 12,
+                                                      family = "DIN Alternate"),
+                                          
+                                          buttons=[dict(label="25/26 Squad",
+                                                        method="update",
+                                                        args=[{"visible": [True, False, True]}]),
+                                                   dict(label="26/27 Squad*",
+                                                        method="update",
+                                                        args=[{"visible": [False, True, True]}])])],
+                                  
+                      xaxis = dict(range=[0, ((team_data["usageRate"] * 100 ).max()) + 0.5],
+                                   title = "Usage Rate %",
+                                   title_font = dict(color = "#CCCCCC",
+                                                     size = 14,
+                                                     family = "DIN Alternate"),
+                                   tickfont = dict(color = "#CCCCCC",
+                                                   size = 12,
+                                                   family = "DIN Alternate"),
+                                   showline = True,
+                                   linecolor = "#CCCCCC",
+                                   linewidth = 1,
+                                   mirror = True,
+                                   showgrid = False),
+
+                      yaxis = dict(range = [0, ((team_data["attackingInvolvement"]*100).max())+0.5],
+                                   title = "Attacking Involvement %",
+                                   title_font = dict(color = "#CCCCCC",
+                                                     size = 14,
+                                                     family = "DIN Alternate"),
+                                   tickfont = dict(color = "#CCCCCC",
+                                                   size = 12,
+                                                   family = "DIN Alternate"),
+                                   showline = True,
+                                   linecolor = "#CCCCCC",
+                                   linewidth = 1,
+                                   mirror = True,
+                                   showgrid = False))
+
+    # Save fig
+    fig.write_html(output_path / f"{team_name}-transfers.html",
+                      config = {"responsive" : True})
+    
+    
+    fig.show()

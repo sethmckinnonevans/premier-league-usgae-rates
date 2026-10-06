@@ -66,6 +66,7 @@ def calculate_sca(match):
             scas.append({
                 "player_id": event["player_id"],
                 "player": event["player"],
+                "team" : event["team"],
                 "type": event["type"],
                 "row": i
             })
@@ -94,21 +95,25 @@ def calculate_sca(match):
 
             "direct_sca_player": None,
             "direct_sca_player_id": None,
+            "direct_sca_team": None,
             "direct_sca_type": None,
 
             "secondary_sca_player": None,
             "secondary_sca_player_id": None,
+            "secondary_sca_team":None,
             "secondary_sca_type": None
         }
 
         if len(scas) >= 1:
             result["direct_sca_player"] = scas[0]["player"]
             result["direct_sca_player_id"] = scas[0]["player_id"]
+            result["direct_sca_team"] = scas[0]["team"]
             result["direct_sca_type"] = scas[0]["type"]
 
         if len(scas) >= 2:
             result["secondary_sca_player"] = scas[1]["player"]
             result["secondary_sca_player_id"] = scas[1]["player_id"]
+            result["secondary_sca_team"] = scas[1]["team"]
             result["secondary_sca_type"] = scas[1]["type"]
 
         sca_results.append(result)
@@ -141,7 +146,7 @@ def calculate_sca_for_season(event_data):
     )
 
 
-def create_sca_dataframe(all_sca_results):
+def create_sca_dataframe(all_sca_results, output_path):
     
     # Aggregate shot-level SCA results into player-level SCA statistics.
 
@@ -162,6 +167,7 @@ def create_sca_dataframe(all_sca_results):
         .dropna(subset=["direct_sca_player"])
         .groupby([
             "direct_sca_player",
+            "direct_sca_team",
             "direct_sca_type"
         ])
         .size()
@@ -177,6 +183,9 @@ def create_sca_dataframe(all_sca_results):
         f"direct_{sca_type.lower()}_sca"
         for sca_type in direct_sca.columns
     ]
+    
+    direct_sca.index.names = ["player", "team"]
+
 
     # Secondary SCA
     secondary_sca = (
@@ -184,11 +193,14 @@ def create_sca_dataframe(all_sca_results):
         .dropna(subset=["secondary_sca_player"])
         .groupby([
             "secondary_sca_player",
+            "secondary_sca_team",
             "secondary_sca_type"
         ])
         .size()
         .unstack(fill_value=0)
     )
+
+    secondary_sca.index.names = ["player", "team"]
 
     secondary_sca = secondary_sca.reindex(
         columns=sca_types,
@@ -200,13 +212,23 @@ def create_sca_dataframe(all_sca_results):
         for sca_type in secondary_sca.columns
     ]
 
+    secondary_sca.index.names = ["player", "team"]
+
     # Merge
     sca_df = direct_sca.join(
         secondary_sca,
         how="outer"
     ).fillna(0)
 
-    sca_df = sca_df.astype(int)
+    sca_df = sca_df.reset_index()
+
+    # Convert only SCA count columns to integers
+    sca_cols = [
+        col for col in sca_df.columns
+        if col.startswith("direct_") or col.startswith("secondary_")
+    ]
+
+    sca_df[sca_cols] = sca_df[sca_cols].astype(int)
 
     # Identify direct/secondary columns
     direct_cols = [
@@ -231,7 +253,9 @@ def create_sca_dataframe(all_sca_results):
 
     # Rearrange columns
     sca_df = sca_df[
-        [
+        [   "player",
+            "team",
+             
             "total_sca",
             "direct_sca",
             "secondary_sca",
@@ -256,18 +280,10 @@ def create_sca_dataframe(all_sca_results):
         ]
     ]
 
-    sca_df = sca_df.reset_index()
-
     sca_df = sca_df.rename(
         columns={"direct_sca_player": "player"})
 
     # Save
-    project_folder = Path(__file__).resolve().parents[1]
-    cleaned_data_folder = project_folder / "data" / "cleaned"
-    cleaned_data_folder.mkdir(parents=True, exist_ok=True)
-
-    sca_df.to_csv(
-        cleaned_data_folder / "SCA.csv",
-        index=False)
+    sca_df.to_csv(output_path / "SCA.csv",index=False)
 
     return sca_df

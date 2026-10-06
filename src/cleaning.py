@@ -3,12 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-def data_cleaning(event_data, player_data, team_data, player_details):
-
-    # Initiate folders
-    project_folder = Path(__file__).resolve().parents[1]
-    cleaned_data_folder = project_folder / "data" / "cleaned"
-    cleaned_data_folder.mkdir(parents=True, exist_ok=True)
+def data_cleaning(event_data, player_data, team_data, player_details, output_path):
 
     # 1: Check for duplicate player entries in the data
     if not (player_data["player id"].duplicated().any()): 
@@ -26,7 +21,7 @@ def data_cleaning(event_data, player_data, team_data, player_details):
 
     
     # 2: Merge player_stats and player_details on player id 
-    players_df = player_data.merge(player_details, 
+    players_df = player_data.merge(player_details[["id", "positions_detailed"]], 
                                     how = "left",
                                     left_on = "player id",
                                     right_on = "id")
@@ -100,9 +95,8 @@ def data_cleaning(event_data, player_data, team_data, player_details):
 
     # 6: Create a final dataframe with only essential metrics and export it
     # Define the required columns
-    feature_cols = ["name","id","team","team id","primaryPosition","positionGroup","minutesPlayed","averageBallPossession","totalShots",
-                 "inaccuratePasses", "dispossessed","unsuccessfulDribbles","keyPasses","assists","expectedAssists","goals","expectedGoals",
-                 "market_value"]
+    feature_cols = ["player","id","team","team id","primaryPosition","positionGroup","minutesPlayed","averageBallPossession","totalShots",
+                 "inaccuratePasses", "dispossessed","unsuccessfulDribbles","keyPasses","assists","expectedAssists","goals","expectedGoals"]
     
     # Create the final df
     players_cleaned_df = players_df[feature_cols].copy()
@@ -112,13 +106,11 @@ def data_cleaning(event_data, player_data, team_data, player_details):
         "name" : "playerName",
         "id" : "playerId",
         "team" : "teamName",
-        "team id" : "teamId",
-        "market_value" : "marketValue"})
+        "team id" : "teamId"})
     
     # Fill nan values with zero
     players_cleaned_df["expectedAssists"] = players_cleaned_df["expectedAssists"].fillna(0)
     players_cleaned_df["expectedGoals"] = players_cleaned_df["expectedGoals"].fillna(0)
-    players_cleaned_df["marketValue"] = players_cleaned_df["marketValue"].fillna(0)
 
     # 7: Clean team_data
     # Define the required columns
@@ -132,8 +124,8 @@ def data_cleaning(event_data, player_data, team_data, player_details):
 
 
     # 8: Export the data
-    players_cleaned_df.to_csv(cleaned_data_folder / "player_data_cleaned.csv", index = False)
-    teams_cleaned_df.to_csv(cleaned_data_folder/ "team_data_cleaned.csv", index = False)
+    players_cleaned_df.to_csv(output_path/ "player_data_cleaned.csv", index = False)
+    teams_cleaned_df.to_csv(output_path/ "team_data_cleaned.csv", index = False)
 
     return players_cleaned_df, teams_cleaned_df
     

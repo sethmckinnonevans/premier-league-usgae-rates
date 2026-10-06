@@ -33,7 +33,7 @@ def find_name_mismatches(players_df, sca_df, cutoff=0.7):
 
     return pd.DataFrame(mismatches)
 
-def calculate_metrics(player_data, team_data, sca_data, name_mapping = None):
+def calculate_metrics(player_data, team_data, sca_data, output_path, team_mapping = None, name_mapping = None):
 
     players_df = player_data.copy()
     teams_df = team_data.copy()
@@ -57,9 +57,12 @@ def calculate_metrics(player_data, team_data, sca_data, name_mapping = None):
     ).round(2)
 
     # ---------------------------------------------------------
-    # 2. Standardise SCA player names
+    # 2. Standardise SCA player and team names
     # ---------------------------------------------------------
 
+    if team_mapping is not None:
+        sca_df["team"] = sca_df["team"].replace(team_mapping)
+    
     if name_mapping is not None:
         sca_df["player"] = sca_df["player"].replace(name_mapping)
 
@@ -69,8 +72,8 @@ def calculate_metrics(player_data, team_data, sca_data, name_mapping = None):
 
     merged_df = players_df.merge(
         sca_df,
-        left_on="playerName",
-        right_on="player",
+        left_on=["playerName", "teamName"],
+        right_on=["player", "team"],
         how="left",
         validate="one_to_one"
     )
@@ -200,9 +203,7 @@ def calculate_metrics(player_data, team_data, sca_data, name_mapping = None):
         "goals",
         "expectedGoals",
         "GA",
-        "xGI",
-        "marketValue"
-    ]
+        "xGI"]
 
     player_usage_data = merged_df[feature_cols].copy()
 
@@ -210,9 +211,9 @@ def calculate_metrics(player_data, team_data, sca_data, name_mapping = None):
     project_folder = Path(__file__).resolve().parents[1]
     data_folder = project_folder / "data"
     
-    player_usage_data.to_csv(data_folder / "player_usage_data.csv", index=False)
+    player_usage_data.to_csv(output_path / "player_usage_data.csv", index=False)
     
-    merged_df.to_csv(data_folder/ "player_data_master.csv", index=False)
+    merged_df.to_csv(output_path / "player_data_master.csv", index=False)
 
     return player_usage_data
     
