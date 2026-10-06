@@ -33,13 +33,10 @@ data/
 │   ├── player_data_cleaned.csv
 │   ├── team_data_cleaned.csv
 │   └── SCA.csv
-├── player_data_master.csv
 └── player_usage_data.csv
 
 figures/
 ├── html/
-│   ├── positions/
-│   ├── teams/
 │   └── team-transfers/
 ├── positions/
 └── teams/
